@@ -1,23 +1,30 @@
 <script setup>
-  import { useIntervalFn } from '@vueuse/core';
+  import { useRafFn } from '@vueuse/core';
   import {ref} from "vue";
 
   const activePosition = ref(0);
-  const speed = ref(200);
+  const framesComplete = ref(0); // keep up with how many passed frames
+  const speed = ref(10); // change speed default to better match new methodology
 
-  const { pause, resume, isActive } = useIntervalFn(() => {
+  const { pause, resume, isActive } = useRafFn(() => {
+    // increment framesComplete each animation frame
+    framesComplete.value++;
+    // return early if frames complete is not a multiple of 10 (or speed.value)
+    // so that the postition is not altered until every 10th animation frame
+    if (framesComplete.value % speed.value) return;
+
     if (activePosition.value > -525) {
       activePosition.value -= 75;
     }else {
       activePosition.value = 0;
     }
-  }, speed);
+  });
 </script>
 
 <template>
   <!--div to display the sprite in-->
   <div>
-    <input type="range" step="20" min="20" max="200" v-model="speed" />
+    <input type="range" step="1" min="1" max="20" v-model="speed" />
     <button @click="isActive ? pause() : resume()">
         {{ isActive ? 'Pause' : 'Resume' }}
     </button>
